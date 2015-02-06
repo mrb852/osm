@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 void heap_initialize(heap_t* heap) {
-  heap->alloc_size = 8 * sizeof(note_t);
+  heap->alloc_size = 8 * sizeof(node_t);
   heap->size = 0;
   heap = malloc(heap->alloc_size);
 }
@@ -19,14 +19,17 @@ void* heap_top(heap_t* heap) {
 
 void heap_insert(heap_t* heap, void* obj, int p) {
   // check if
-  if (heap->size * sizeof(note_t) >= heap->alloc_size) {
+  if (heap->size * sizeof(node_t) >= heap->alloc_size) {
     size_t alloc_size = heap->alloc_size * 2;
     heap = realloc(heap, alloc_size);
   }
+
+  // Create the node
   node_t *node = malloc(sizeof(node_t));
   node->thing = obj;
   node->priority = p;
   heap->size++;
+
   *(&heap->root + heap->size) = node;
   // max-heapify here
 }
