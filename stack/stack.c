@@ -45,6 +45,7 @@ void stack_push(stack_type *stack, void *obj) {
   stack->data[++stack->size] = obj;
 }
 
+/* This might need a bit attention since it could be doing the right thing or nothing. Idk really... */
 void stack_free(stack_type *stack) {
   int i = 0;
   for (; i < stack->size; i++) {

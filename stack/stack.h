@@ -40,7 +40,8 @@ void *stack_pop(stack_type *stack);
 
 
 /**
- * Pushes an object onto the stack and increments the stack top
+ * Pushes an object onto the stack and increments the stack size
+ * @discussion increases dynamically
  * @param stack the stack
  * @param obj the object to push onto the stack
  */
