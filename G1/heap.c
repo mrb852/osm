@@ -1,51 +1,93 @@
 #include "heap.h"
+#include <stdio.h>
 #include <stdlib.h>
+
+void heapify(heap_t* heap, size_t i, size_t n) {
+
+  long l = 2 * i + 1;
+  long r = 2 * i + 2;
+  long max = i;
+  node_t *arr = heap->root;
+
+  if (l < n && arr[l].priority > arr[max].priority) { max = l; }
+  if (r < n && arr[r].priority > arr[max].priority) { max = r; }
+
+  if (max != i) {
+    node_t tmp = arr[i];
+    arr[i] = arr[max];
+    arr[max] = tmp;
+    heapify(heap, max, n);
+  }
+}
+
+void build_heap(heap_t* heap) {
+  long n = heap_size(heap);
+  long i = n / 2;
+
+  while(i > 0) {
+    heapify(heap, --i, n);
+  }
+}
 
 void heap_initialize(heap_t* heap) {
   heap->alloc_size = 8 * sizeof(node_t);
   heap->size = 0;
-  heap = malloc(heap->alloc_size);
+  heap->root = malloc(heap->alloc_size);
 }
 
-// void heap_clear(heap*);
-
 size_t heap_size(heap_t* heap) {
-  return heap->size;
+  return heap->size / sizeof(node_t);
 }
 
 void* heap_top(heap_t* heap) {
-  return heap->root->thing;
+  build_heap(heap);
+  return heap->root->value;
 }
 
 void heap_insert(heap_t* heap, void* obj, int p) {
-  // check if
-  if (heap->size * sizeof(node_t) >= heap->alloc_size) {
-    size_t alloc_size = heap->alloc_size * 2;
-    heap = realloc(heap, alloc_size);
+
+  heap->size += sizeof(node_t);
+
+  if (heap->size > heap->alloc_size) {
+    heap->alloc_size *= 2;
+    heap->root = realloc(heap->root, heap->alloc_size);
+  }
+  node_t node = { .value = obj, .priority = p };
+
+  heap->root[heap_size(heap) - 1] = node;
+  build_heap(heap);
+
+}
+
+void* heap_pop(heap_t* heap) {
+
+  build_heap(heap);
+  node_t *root = heap->root;
+  void *val = root->value;
+  root->priority = -1;
+  root->value = NULL;
+
+  heap->size -= sizeof(node_t);
+
+  if (heap->size <= heap->alloc_size / 2) {
+    heap->alloc_size /= 2;
+    heap->root = realloc(heap->root, heap->alloc_size);
   }
 
-  // Create the node
-  node_t *node = malloc(sizeof(node_t));
-  node->thing = obj;
-  node->priority = p;
-  heap->size++;
-
-  *(&heap->root + heap->size) = node;
-  // max-heapify here
+  return val;
 }
 
-void *heap_pop(heap_t* heap) {
-  node_t *node = heap_top(heap);
-  heap->size--;
-  heap->root = NULL;
-  // max-heapify here
-  return node;
+void heap_clear(heap_t *heap) {
+  for (long i = 0; i < heap_size(heap); ++i) {
+    node_t node = heap->root[i];
+    if (node.value != NULL) {
+      free(node.value);
+      node.priority = 0;
+    }
+  }
+  free(heap->root);
+  heap->alloc_size = 0;
+  heap->size = 0;
 }
 
-// int compare(node_t *n1, node_t *n2) {
-//   int p1 = n1->priority;
-//   int p2 = n2->priority;
-//   if (p1 == p2) return 0;
-//   else if (p1 < p2) return -1;
-//   else return 1;
-// }
+

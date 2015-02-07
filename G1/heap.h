@@ -1,7 +1,7 @@
 #include <stddef.h> // size_t
 
 typedef struct node_t {
-  void* thing;
+  void* value;
   int priority;
 } node_t;
 
