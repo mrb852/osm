@@ -44,7 +44,7 @@ void* heap_top(heap_t* heap) {
   if (heap->size <= 0) {
     return NULL;
   }
-  build_heap(heap);
+  
   return heap->root->value;
 }
 
