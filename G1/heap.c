@@ -1,6 +1,7 @@
 #include "heap.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 void heapify(heap_t* heap, size_t i, size_t n) {
 
@@ -40,12 +41,15 @@ size_t heap_size(heap_t* heap) {
 }
 
 void* heap_top(heap_t* heap) {
+  if (heap->size <= 0) {
+    return NULL;
+  }
   build_heap(heap);
   return heap->root->value;
 }
 
 void heap_insert(heap_t* heap, void* obj, int p) {
-
+  assert(heap->root != NULL);
   heap->size += sizeof(node_t);
 
   if (heap->size > heap->alloc_size) {
@@ -59,13 +63,20 @@ void heap_insert(heap_t* heap, void* obj, int p) {
 
 }
 
-void* heap_pop(heap_t* heap) {
+void swap(node_t arr[], int i, int j) {
+  node_t tmp = arr[i];
+  arr[j] = arr[i];
+  arr[i] = tmp;
+}
 
-  build_heap(heap);
+void* heap_pop(heap_t* heap) {
+  assert(heap->size > 0);
   node_t *root = heap->root;
   void *val = root->value;
-  root->priority = -1;
-  root->value = NULL;
+
+  for (int i = 1; i < heap_size(heap); ++i) {
+    swap(heap->root, i, i - 1);
+  }
 
   heap->size -= sizeof(node_t);
 
@@ -73,6 +84,8 @@ void* heap_pop(heap_t* heap) {
     heap->alloc_size /= 2;
     heap->root = realloc(heap->root, heap->alloc_size);
   }
+
+  build_heap(heap);
 
   return val;
 }
@@ -88,6 +101,7 @@ void heap_clear(heap_t *heap) {
   free(heap->root);
   heap->alloc_size = 0;
   heap->size = 0;
+  heap->root = NULL;
 }
 
 
