@@ -16,4 +16,4 @@ void heap_clear(heap_t*);
 size_t heap_size(heap_t*);
 void* heap_top(heap_t*);
 void heap_insert(heap_t*, void*, int);
-void *heap_pop(heap_t*);
+void* heap_pop(heap_t*);
