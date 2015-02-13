@@ -1,0 +1,12 @@
+==pop/insert allocation==
+=========================
+We initialize the heap, by reserving the size of 64 elements.
+If all 64 elements are in use, we multiply 64 by 2 and reserve 128 elements.
+Again, if all 128 elements are in use, we double the space and reserve 256
+elements.
+This will work in most cases, but might be inefficient, when using very large
+heaps. If your heap is 2GB and you need one more element, it will reserve 4GB.
+
+The same goes for popping, but vica versa. When the space used is less than half
+the size of the heap, it will reallocate the heap space.
+
