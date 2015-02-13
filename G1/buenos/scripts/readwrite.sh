@@ -1,8 +1,8 @@
 #!/bin/bash
-cd ~/test/buenos-g1 &&
+cd ~/test/shared/G1/buenos/buenos-g1 &&
 make clean &&
 make &&
-cd ~/test/buenos-g1/tests &&
+cd ~/test/shared/G1/buenos/buenos-g1/tests &&
 make clean &&
 make &&
 cd .. &&
