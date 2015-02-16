@@ -1,5 +1,7 @@
+TASK 1 - HEAPS
+
 ==pop/insert allocation==
-=========================
+
 We initialize the heap, by reserving the size of 64 elements.
 If all 64 elements are in use, we multiply 64 by 2 and reserve 128 elements.
 Again, if all 128 elements are in use, we double the space and reserve 256
@@ -10,3 +12,23 @@ heaps. If your heap is 2GB and you need one more element, it will reserve 4GB.
 The same goes for popping, but vica versa. When the space used is less than half
 the size of the heap, it will reallocate the heap space.
 
+
+TASK 2 - BUENOS
+
+==Running the code==
+You can run the by using the script in G1/buenos/scripts/
+./readwrite.sh
+
+Remember to change the paths in the file
+
+
+==Read==
+Since we aren't able to retrive more than one character at the time from
+gcd->read, we run a while loop, that reads one character and adds it to the
+buffer 'b'. If the input character is \r (Enter key), it will break the while
+loop and copy 'b' to the buffer pointer.
+
+
+==Write==
+The write function takes a buffer as argument, and writes the buffer to GCD and
+adds a new line.
