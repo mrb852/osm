@@ -20,8 +20,8 @@ int syscall_write(int filehandle, void *buffer, int length) {
   gcd = (gcd_t *)dev->generic_device;
   KERNEL_ASSERT(gcd != NULL);
 
-  gcd->write(gcd, buffer, length);
-  gcd->write(gcd, (void *)"\n", 1);
+  int lengthWritten = gcd->write(gcd, buffer, length);
+  lengthWritten += gcd->write(gcd, (void *)"\n", 1);
 
-  return 0;
+  return lengthWritten +  1;
 }

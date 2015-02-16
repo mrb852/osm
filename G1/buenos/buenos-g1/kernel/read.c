@@ -27,8 +27,8 @@ int syscall_read(int filehandle, void *buffer, int length) {
     counter += gcd->read(gcd, one, 1);
 
     if (one[0] == '\r') {
-      break;
       counter--;
+      break;
     }
     b[counter - 1] = one[0];
   }
@@ -36,5 +36,5 @@ int syscall_read(int filehandle, void *buffer, int length) {
   b[counter] = '\0';
   snprintf(buffer, length, b);
 
-  return 0;
+  return counter;
 }
