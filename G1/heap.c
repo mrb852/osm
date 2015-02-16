@@ -94,7 +94,7 @@ void* heap_pop(heap_t* heap) {
 void heap_clear(heap_t *heap) {
   for (long unsigned i = 0; i < heap_size(heap); ++i) {
     node_t node = heap->root[i];
-    if (node.value != NULL) {
+    if (node.value != NULL) { // If value exists, free space
       free(node.value);
     }
   }
