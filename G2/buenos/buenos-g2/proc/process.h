@@ -19,7 +19,7 @@ typedef int process_id_t;
 #define PCB_NEW 0x01
 #define PCB_READY 0x02
 #define PCB_WAITING 0x03
-#define PCB_ZOMBIE 0x04
+#define PCB_DYING 0x04
 #define PCB_RUNNING 0x05
 
 // TERMINATED and DEAD is the same
@@ -37,6 +37,7 @@ typedef struct {
     int priority;
     int thread_id;
     int retval;
+    char executable[256]; // Defined in vfs.h
     //int process_pointer;
     //int process_burst_time;
 

@@ -9,7 +9,6 @@
 #include "vm/vm.h"
 #include "vm/pagepool.h"
 
-
 /** @name Process startup
  *
  * This module contains facilities for managing userland processes.
@@ -165,17 +164,9 @@ void process_init() {
         process_table[p].state = PCB_FREE;
     }
 
-    // Ready
-    for (int p = 0; p < PROCESS_MAX_PROCESSES; p++){
-        process_table[p].state = PCB_READY;
-    }
-
-    //thread_table_init();
 }
 
 process_id_t process_spawn(const char *executable) {
-
-
     interrupt_status_t intr_status;
     intr_status = _interrupt_disable();
     spinlock_acquire(&process_table_slock);
@@ -183,7 +174,9 @@ process_id_t process_spawn(const char *executable) {
 
     process_id_t p_id = -1;
     for (int p = 0; p < PROCESS_MAX_PROCESSES; p++){
-        if (process_table[p].state == PCB_READY){
+        process_control_block_t *process = &(process_table[p]);
+
+        if (process->state == PCB_FREE){
             p_id = (process_id_t) p;
             break;
         }
@@ -194,12 +187,15 @@ process_id_t process_spawn(const char *executable) {
 
     if (p_id == -1) KERNEL_PANIC("No empty process slot! (process_table)");
 
-    process_table[p_id].state = PCB_NEW;
-    process_table[p_id].priority = PCB_PRIORITY_DEFAULT;
-    //process_table[p_id].program_counter = 0;
-    process_table[p_id].thread_id = thread_create((void *)process_start, (uint32_t) executable);
-    thread_run(process_table[p_id].thread_id);
-    process_table[p_id].state = PCB_RUNNING;
+    process_control_block_t *process = &(process_table[p_id]);
+    process->state = PCB_NEW;
+
+    stringcopy(process->executable, executable, 256);
+
+    process->priority = PCB_PRIORITY_DEFAULT;
+    process->thread_id = thread_create((void *)process_start, (uint32_t) process->executable);
+    thread_run(process->thread_id);
+    process->state = PCB_RUNNING;
 
     return p_id;
 }
@@ -209,26 +205,52 @@ process_id_t process_spawn(const char *executable) {
 void process_finish(int retval) {
     _interrupt_disable();
 
-    spinlock_acquire(&process_table_slock);
+    process_control_block_t *process = process_get_current_process_entry();
 
-    process_table[p_id].retval = retval;
-    process_table[p_id].state = PCB_DYING;
-    //thread_table[my_tid].state = THREAD_DYING;
+    spinlock_acquire(&process_table_slock);
+    process->retval = retval;
+    process->state = PCB_DYING;
+
+
+    //char tmp[] = {(char) (process->state + 65), '\0'};
+    //kprintf(tmp);
+    kprintf("|\n");
+
     spinlock_release(&process_table_slock);
 
     _interrupt_enable();
     _interrupt_generate_sw0();
 
-    KERNEL_PANIC("Not implemented: process_finish");
+    // Husk at fjerne tråd
+    thread_table_t *t = thread_get_current_thread_entry();
+    vm_destroy_pagetable(t->pagetable);
+    t->pagetable = NULL;
+
+    thread_finish();
 }
 
-int process_join(process_id_t pid) {
+int process_join(process_id_t p_id) {
+
+    spinlock_acquire(&process_table_slock);
+
+    process_control_block_t *process = &process_table[p_id];
+
+    while(process->state != PCB_DYING){
+        spinlock_release(&process_table_slock);
+
+        //char tmp[] = {(char) (process->state + 65), '\0'};
+        //kprintf(tmp);
+        //kprintf("-\n");
 
 
-    TID_t t = process_table[p_id].thread_id;
-    while(thread_table[t].state != THREAD_DYING);
+        thread_switch();
 
-    int retval = -1337;
+        spinlock_acquire(&process_table_slock);
+    };
+
+    int retval = process->retval;
+
+    spinlock_release(&process_table_slock);
 
     return retval;
 }

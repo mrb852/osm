@@ -35,6 +35,7 @@
  */
 #include "kernel/cswitch.h"
 #include "proc/syscall.h"
+#include "proc/process.h"
 #include "kernel/halt.h"
 #include "kernel/panic.h"
 #include "lib/libc.h"
@@ -88,6 +89,10 @@ void syscall_handle(context_t *user_context)
      * returning from this function the userland context will be
      * restored from user_context.
      */
+
+    int p_id;
+    int retval;
+
     switch(user_context->cpu_regs[MIPS_REGISTER_A0]) {
     case SYSCALL_HALT:
         halt_kernel();
@@ -102,13 +107,13 @@ void syscall_handle(context_t *user_context)
         break;
     case SYSCALL_EXEC:
         // Reads the retval from register A1
-        int p_id = process_spawn((char *) A1);
+        p_id = process_spawn((char *) A1);
         // Saves retval to return register V0
         V0 = p_id;
         break;
     case SYSCALL_JOIN:
         // Reads the retval from register A1
-        int retval = process_join(A1);
+        retval = process_join(A1);
         // Saves retval to return register V0
         V0 = retval;
         break;
