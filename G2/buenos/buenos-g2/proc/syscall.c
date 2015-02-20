@@ -108,7 +108,7 @@ void syscall_handle(context_t *user_context)
         break;
     case SYSCALL_JOIN:
         // Reads the retval from register A1
-        int retval = process_join((char *) A1);
+        int retval = process_join(A1);
         // Saves retval to return register V0
         V0 = retval;
         break;

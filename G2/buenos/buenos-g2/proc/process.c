@@ -207,10 +207,12 @@ process_id_t process_spawn(const char *executable) {
 /* Stop the process and the thread it runs in.  Sets the return value as
    well. */
 void process_finish(int retval) {
-    retval = retval; /* Dummy */
     _interrupt_disable();
 
     spinlock_acquire(&process_table_slock);
+
+    process_table[p_id].retval = retval;
+    process_table[p_id].state = PCB_DYING;
     //thread_table[my_tid].state = THREAD_DYING;
     spinlock_release(&process_table_slock);
 

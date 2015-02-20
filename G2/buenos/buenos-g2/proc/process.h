@@ -36,6 +36,7 @@ typedef struct {
     int counter;
     int priority;
     int thread_id;
+    int retval;
     //int process_pointer;
     //int process_burst_time;
 
