@@ -14,44 +14,22 @@ typedef int process_id_t;
 #define PROCESS_MAX_PROCESSES 32
 
 
-/* ########################################################################## */
+// State definitions
 #define PCB_FREE 0x00
 #define PCB_NEW 0x01
 #define PCB_READY 0x02
 #define PCB_WAITING 0x03
 #define PCB_DYING 0x04
 #define PCB_RUNNING 0x05
-
-// TERMINATED and DEAD is the same
-#define PCB_TERMINATED 0x06
 #define PCB_DEAD 0x06
 
-#define PCB_PRIORITY_HIGH 0x01
-#define PCB_PRIORITY_DEFAULT 0x02
-#define PCB_PRIORITY_LOW 0x03
-
-
+// Definition of structure for PCB
 typedef struct {
     int state;
-    int counter;
-    int priority;
     int thread_id;
     int retval;
     char executable[256]; // Defined in vfs.h
-    //int process_pointer;
-    //int process_burst_time;
-
-    // registers?
-    // memory?
-    //int program_base_address;
-    //int program_limit_address;
-    // Accounting infomation
-    // I/O status information
-
-
 } process_control_block_t;
-
-/* ########################################################################## */
 
 
 /* Initialize the process table.  This must be called during kernel startup

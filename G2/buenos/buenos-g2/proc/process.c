@@ -3,6 +3,7 @@
 #include "kernel/thread.h"
 #include "kernel/assert.h"
 #include "kernel/interrupt.h"
+#include "kernel/sleepq.h"
 #include "kernel/config.h"
 #include "fs/vfs.h"
 #include "drivers/yams.h"
@@ -167,11 +168,12 @@ void process_init() {
 }
 
 process_id_t process_spawn(const char *executable) {
+    // aquire spinlock and interrupt
     interrupt_status_t intr_status;
     intr_status = _interrupt_disable();
     spinlock_acquire(&process_table_slock);
 
-
+    // Search through process table for empty slot
     process_id_t p_id = -1;
     for (int p = 0; p < PROCESS_MAX_PROCESSES; p++){
         process_control_block_t *process = &(process_table[p]);
@@ -182,19 +184,29 @@ process_id_t process_spawn(const char *executable) {
         }
     }
 
-    spinlock_release(&process_table_slock);
-    _interrupt_set_state(intr_status);
-
+    // Kernel panic, if search fails
     if (p_id == -1) KERNEL_PANIC("No empty process slot! (process_table)");
 
+    // Set process to NEW
     process_control_block_t *process = &(process_table[p_id]);
     process->state = PCB_NEW;
 
+    // Release lock
+    spinlock_release(&process_table_slock);
+    _interrupt_set_state(intr_status);
+
+    // Copy executable to PCB
     stringcopy(process->executable, executable, 256);
 
-    process->priority = PCB_PRIORITY_DEFAULT;
+    // Create and start process thread
     process->thread_id = thread_create((void *)process_start, (uint32_t) process->executable);
     thread_run(process->thread_id);
+
+    // Tell thread which process it belongs to
+    thread_table_t *t = thread_get_current_thread_entry();
+    t->process_id = p_id;
+
+    // Set process to RUNNING
     process->state = PCB_RUNNING;
 
     return p_id;
@@ -203,54 +215,48 @@ process_id_t process_spawn(const char *executable) {
 /* Stop the process and the thread it runs in.  Sets the return value as
    well. */
 void process_finish(int retval) {
-    _interrupt_disable();
-
-    process_control_block_t *process = process_get_current_process_entry();
-
+    // aquire spinlock and interrupt
+    interrupt_status_t intr_status = _interrupt_disable();
     spinlock_acquire(&process_table_slock);
-    process->retval = retval;
+
+    // Set process to DYING and get its return value
+    process_control_block_t *process = process_get_current_process_entry();
     process->state = PCB_DYING;
+    process->retval = retval;
 
-
-    //char tmp[] = {(char) (process->state + 65), '\0'};
-    //kprintf(tmp);
-    kprintf("|\n");
+    sleepq_wake_all(process);
 
     spinlock_release(&process_table_slock);
+    _interrupt_set_state(intr_status);
 
-    _interrupt_enable();
-    _interrupt_generate_sw0();
-
-    // Husk at fjerne tråd
+    // Clean up after thread exit
     thread_table_t *t = thread_get_current_thread_entry();
     vm_destroy_pagetable(t->pagetable);
     t->pagetable = NULL;
-
     thread_finish();
 }
 
 int process_join(process_id_t p_id) {
-
+    // aquire spinlock and interrupt
+    interrupt_status_t intr_status = _interrupt_disable();
     spinlock_acquire(&process_table_slock);
 
+
+    // continuously check if process is dying
     process_control_block_t *process = &process_table[p_id];
-
-    while(process->state != PCB_DYING){
+    while(process->state != PCB_DYING) {
+        sleepq_add(process);
         spinlock_release(&process_table_slock);
-
-        //char tmp[] = {(char) (process->state + 65), '\0'};
-        //kprintf(tmp);
-        //kprintf("-\n");
-
-
         thread_switch();
-
         spinlock_acquire(&process_table_slock);
     };
 
+    // If process is dying get its return value and mark it as FREE
     int retval = process->retval;
+    process->state = PCB_FREE;
 
     spinlock_release(&process_table_slock);
+    _interrupt_set_state(intr_status);
 
     return retval;
 }
