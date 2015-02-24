@@ -110,7 +110,7 @@ void *memcpy(void *dest, const void *src, size_t n);
 #endif
 
 #ifdef PROVIDE_BASIC_IO
-int putc(char c);
+int myPutc(char c);
 int puts(const char* s);
 int getchar(void);
 ssize_t gets(char *s, size_t size);
