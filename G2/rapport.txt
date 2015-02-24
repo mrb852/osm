@@ -1,0 +1,93 @@
+Vi har ændret på følgende filer:
+ - syscall.c
+ - syscall.h
+ - process.c
+ - process.h
+ - main.c
+
+Derudover har vi tilføjet følgende test-filer:
+ - nojob.c
+ - process_test.c
+
+
+1.1 Datastruktur
+================
+
+Vi har defineret følgende stadier som beskriver en process forløb.
+
+    #define PCB_FREE 0x00
+    #define PCB_NEW 0x01
+    #define PCB_READY 0x02
+    #define PCB_WAITING 0x03
+    #define PCB_DYING 0x04
+    #define PCB_RUNNING 0x05
+    #define PCB_DEAD 0x06
+
+Som minimum skal vi bruge processens state, tråd id samt returværdi. Derudover
+skal vi bruge navnet på vores executable da vores executable string ellers
+forsvinder når vi kommer ud af vores process_spawn scope.
+
+    typedef struct {
+        int state;
+        int thread_id;
+        int retval;
+        char executable[256]; // Defined in vfs.h
+    } process_control_block_t;
+
+
+1.2 Hjælpe funktioner
+=====================
+
+Process spawn:
+Vi starter med at disable interupt så vi ikke bliver afbrudt. Derudover tager
+vi spinlock der gør at andre processer ikke kan ændre i vores process table.
+Når vi har spinlock søger vi igennem vores array, efter første ledige PCB. Hvis
+ikke det er mulig resulterer den i en kernal panic.
+Hvis alt går godt så sætter vi state til PCB_NEW hvilket betyder at andre
+processer ikke må reservere denne PCB.
+
+Vi kan begynde på at kopier navnet på vores executable ind i vores PCB så den
+ikke forsvinder ud af vores scope.
+
+Derefter kan vi oprette en ny tråd og gemmer den i PCB. Vi sætter derefter
+vores tråd igang og gemmer process id i tråden. State bliver sat til running og
+returnere process id.
+
+
+Process finish:
+Vi sørger for at låse for interups og få spinlock. Vi får så den nuværende
+process og sætter den til dying og gemmer dens returværdig i PCB.
+
+Vi låser op igen for interups og spinlocks hvorefter vi ryder op efter tråden.
+
+
+Process join:
+Vi tjekker om den givne process er klar til at afslutte (PCB_DYING). Hvis den
+ikke er klar så sleeper vi processen og skrifter til en anden tråd. Vi
+fortsætter på denne måde indtil der er en process der er klar til at afslutte.
+
+Hvis processen er klar til at afslutte returnere vi returværdien.
+
+
+Process init:
+Her nulstiller vi alle processer til PCB_FREE hvilket betyder at andre gerne må
+overskrive. Når en process står som free betyder det at den data der kan være i
+den skal reinitialiseres ved process spawn.
+
+
+2.1 SYSCALL
+===========
+
+Vi opretter 3 nye cases til vores user context switch (SYSCALL_EXEC,
+SYSCALL_JOIN, SYSCALL_EXIT). De aflæser alle sammen A0 og sender argumentet
+videre til deres respektive funktioner. Med execute og join modtager de
+derefter returværdien og afslutter.
+
+
+KOMMENTARER TIL KØRSEL
+======================
+Vi kan se, at process_join fungere efter hensigten ved først kald til
+funktionen. Vi kan se at process_finish bliver kaldt umiddelbart efter, men
+process_join bliver aldrig kaldt igen, hvilket resultere i en dødløkke.
+
+Vi har spurgt Oleksandr tilhjælps, men vi var ikke i stand til at finde fejlen.
