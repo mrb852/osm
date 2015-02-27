@@ -4,8 +4,7 @@
 
 typedef enum {
   USER_SEM_STATE_FREE,
-  USER_SEM_STATE_RUNNING,
-  USER_SEM_STATE_TERMINATED
+  USER_SEM_STATE_RUNNING
 } USER_SEM_STATE
 
 typedef void usr_sem_t;
