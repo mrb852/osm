@@ -18,10 +18,10 @@ typedef struct {
 
 usr_sem_t* syscall_sem_open(char const* name, int value) {
 
-  semaphore_t sem = semaphore_create(value);
+  semaphore_t* sem = semaphore_create(value);
   if (sem == NULL) return NULL;
 
-  intr_status = _interrupt_disable();
+  int intr_status = _interrupt_disable();
   spinlock_acquire(&semaphore_table_slock);
 
   int i;
@@ -41,13 +41,23 @@ usr_sem_t* syscall_sem_open(char const* name, int value) {
 }
 
 int syscall_sem_p(usr_sem_t* handle) {
-  semaphore_P(handle->sem);
+  semaphore_P(((user_semaphore_t *)handle)->sem);
+  return 0; 
 }
 
 int syscall_sem_v(usr_sem_t* handle) {
-  semaphore_V(handle->sem);
+  semaphore_V(((user_semaphore_t *)handle)->sem);
+  return 0;
 }
 
 int syscall_sem_destroy(usr_sem_t* handle) {
-  handle->USER_SEM_STATE_FREE;
+  int intr_status = _interrupt_disable();
+  spinlock_acquire(&semaphore_table_slock);
+
+  ((user_semaphore_t *)handle)->state = USER_SEM_STATE_FREE;
+
+  spinlock_release(&semaphore_table_slock);
+  _interrupt_set_state(intr_status);
+
+  return 0;
 }

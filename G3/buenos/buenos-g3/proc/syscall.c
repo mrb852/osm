@@ -35,6 +35,7 @@
  */
 #include "kernel/cswitch.h"
 #include "proc/syscall.h"
+#include "proc/sem.h"
 #include "proc/process.h"
 #include "kernel/halt.h"
 #include "kernel/panic.h"
@@ -125,16 +126,16 @@ void syscall_handle(context_t *user_context)
         V0 = syscall_join((process_id_t) A1);
         break;
     case SYSCALL_SEM_OPEN:
-        V0 = syscall_sem_open((char *)A1, (int)A2);
+        V0 = (int)syscall_sem_open((char *)A1, (int)A2);
         break;
     case SYSCALL_SEM_PROCURE:
-        V0 = syscall_sem_p((int)A1);
+        V0 = syscall_sem_p((void *)A1);
         break;
     case SYSCALL_SEM_VACATE:
-        V0 = syscall_sem_v((int)A1);
+        V0 = syscall_sem_v((void *)A1);
         break;
     case SYSCALL_SEM_DESTROY:
-        V0 = syscall_sem_destroy((int)A1);
+        V0 = syscall_sem_destroy((void *)A1);
         break;
     default:
         KERNEL_PANIC("Unhandled system call\n");
