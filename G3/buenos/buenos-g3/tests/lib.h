@@ -49,6 +49,11 @@
 /* User semaphore */
 typedef void usr_sem_t;
 
+void* syscall_sem_open(char const* name, int value);
+int syscall_sem_p(void * handle);
+int syscall_sem_v(void * handle);
+int syscall_sem_destroy(void * handle);
+
 /* POSIX-like integer types */
 typedef uint8_t byte;
 typedef int32_t ssize_t;

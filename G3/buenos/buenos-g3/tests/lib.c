@@ -42,6 +42,45 @@
 #include "proc/syscall.h"
 #include "tests/lib.h"
 
+void* syscall_sem_open(char const* name, int value)
+{
+    return (usr_sem_t *)_syscall(SYSCALL_SEM_OPEN, (uint32_t)name, (uint32_t)value, 0);
+}
+
+int syscall_sem_p(void * handle)
+{
+    return (int)_syscall(SYSCALL_SEM_PROCURE, (uint32_t) handle, 0, 0);
+}
+
+int syscall_sem_v(void * handle)
+{
+    return (int)_syscall(SYSCALL_SEM_VACATE, (uint32_t) handle, 0, 0);
+}
+
+int syscall_sem_destroy(void * handle)
+{
+    return (int)_syscall(SYSCALL_SEM_DESTROY, (uint32_t) handle, 0, 0);
+}
+
+
+/*
+case SYSCALL_SEM_OPEN:
+        V0 = (int)syscall_sem_open((char *)A1, (int)A2);
+        break;
+    case SYSCALL_SEM_PROCURE:
+        V0 = syscall_sem_p((void *)A1);
+        break;
+    case SYSCALL_SEM_VACATE:
+        V0 = syscall_sem_v((void *)A1);
+        break;
+    case SYSCALL_SEM_DESTROY:
+        V0 = syscall_sem_destroy((void *)A1);
+        break;
+
+*/
+
+
+
 
 /* Halt the system (sync disks and power off). This function will
  * never return. 

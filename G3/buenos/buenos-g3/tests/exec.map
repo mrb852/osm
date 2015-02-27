@@ -20,59 +20,63 @@ Linker script and memory map
 
                 0x0000000000001000                . = 0x1000
 
-ro_segment      0x0000000000001000     0x2a5c
+ro_segment      0x0000000000001000     0x2b84
  *(.text .rodata .rodata.*)
  .text          0x0000000000001000       0x24 crt.o
                 0x0000000000001000                _start
                 0x0000000000001018                __main
  .text          0x0000000000001024        0xc _syscall.o
                 0x0000000000001024                _syscall
- .text          0x0000000000001030     0x246c lib.o
-                0x0000000000001030                syscall_halt
-                0x0000000000001070                syscall_exec
-                0x00000000000010b8                syscall_execp
-                0x000000000000110c                syscall_exit
-                0x0000000000001154                syscall_join
-                0x000000000000119c                syscall_fork
-                0x00000000000011ec                syscall_memlimit
-                0x0000000000001234                syscall_open
-                0x000000000000127c                syscall_close
-                0x00000000000012c4                syscall_read
-                0x0000000000001318                syscall_seek
-                0x0000000000001368                syscall_write
-                0x00000000000013bc                syscall_create
-                0x000000000000140c                syscall_delete
-                0x0000000000001454                strlen
-                0x00000000000014b8                strcpy
-                0x0000000000001560                strncpy
-                0x000000000000163c                strcat
-                0x0000000000001694                strncat
-                0x0000000000001788                strcmp
-                0x00000000000017d0                strncmp
-                0x0000000000001904                memcmp
-                0x00000000000019e0                strstr
-                0x0000000000001a84                memset
-                0x0000000000001b00                memcpy
-                0x0000000000001b94                myPutc
-                0x0000000000001bd8                puts
-                0x0000000000001c84                getc_raw
-                0x0000000000001cc8                getc
-                0x0000000000001d20                gets
-                0x0000000000001dd4                readline
-                0x0000000000002cb8                printf
-                0x0000000000002d28                snprintf
-                0x0000000000002d90                heap_init
-                0x0000000000002de0                malloc
-                0x0000000000002fc4                free
-                0x00000000000031c8                calloc
-                0x0000000000003288                realloc
-                0x00000000000033a4                atoi
- .rodata        0x000000000000349c      0x110 lib.o
- .text          0x00000000000035ac      0x434 exec.o
-                0x00000000000035ac                write_char
-                0x00000000000035f0                write_int
-                0x0000000000003764                main
- .rodata        0x00000000000039e0       0x7c exec.o
+ .text          0x0000000000001030     0x2594 lib.o
+                0x0000000000001030                syscall_sem_open
+                0x0000000000001080                syscall_sem_p
+                0x00000000000010c8                syscall_sem_v
+                0x0000000000001110                syscall_sem_destroy
+                0x0000000000001158                syscall_halt
+                0x0000000000001198                syscall_exec
+                0x00000000000011e0                syscall_execp
+                0x0000000000001234                syscall_exit
+                0x000000000000127c                syscall_join
+                0x00000000000012c4                syscall_fork
+                0x0000000000001314                syscall_memlimit
+                0x000000000000135c                syscall_open
+                0x00000000000013a4                syscall_close
+                0x00000000000013ec                syscall_read
+                0x0000000000001440                syscall_seek
+                0x0000000000001490                syscall_write
+                0x00000000000014e4                syscall_create
+                0x0000000000001534                syscall_delete
+                0x000000000000157c                strlen
+                0x00000000000015e0                strcpy
+                0x0000000000001688                strncpy
+                0x0000000000001764                strcat
+                0x00000000000017bc                strncat
+                0x00000000000018b0                strcmp
+                0x00000000000018f8                strncmp
+                0x0000000000001a2c                memcmp
+                0x0000000000001b08                strstr
+                0x0000000000001bac                memset
+                0x0000000000001c28                memcpy
+                0x0000000000001cbc                myPutc
+                0x0000000000001d00                puts
+                0x0000000000001dac                getc_raw
+                0x0000000000001df0                getc
+                0x0000000000001e48                gets
+                0x0000000000001efc                readline
+                0x0000000000002de0                printf
+                0x0000000000002e50                snprintf
+                0x0000000000002eb8                heap_init
+                0x0000000000002f08                malloc
+                0x00000000000030ec                free
+                0x00000000000032f0                calloc
+                0x00000000000033b0                realloc
+                0x00000000000034cc                atoi
+ .rodata        0x00000000000035c4      0x110 lib.o
+ .text          0x00000000000036d4      0x434 exec.o
+                0x00000000000036d4                write_char
+                0x0000000000003718                write_int
+                0x000000000000388c                main
+ .rodata        0x0000000000003b08       0x7c exec.o
 
 rw_segment      0x0000000000004000      0x104
  *(.data .bss COMMON)
@@ -97,11 +101,11 @@ OUTPUT(exec elf32-bigmips)
 .reginfo        0x0000000000000000       0x18
  .reginfo       0x0000000000000000       0x18 crt.o
 
-.pdr            0x0000000000000000      0x620
+.pdr            0x0000000000000000      0x6a0
  .pdr           0x0000000000000000       0x40 crt.o
  .pdr           0x0000000000000040       0x20 _syscall.o
- .pdr           0x0000000000000060      0x560 lib.o
- .pdr           0x00000000000005c0       0x60 exec.o
+ .pdr           0x0000000000000060      0x5e0 lib.o
+ .pdr           0x0000000000000640       0x60 exec.o
 
 .mdebug.abi32   0x0000000000000000        0x0
  .mdebug.abi32  0x0000000000000000        0x0 lib.o
@@ -171,6 +175,10 @@ syscall_memlimit                                  lib.o
 syscall_open                                      lib.o
 syscall_read                                      lib.o
 syscall_seek                                      lib.o
+syscall_sem_destroy                               lib.o
+syscall_sem_open                                  lib.o
+syscall_sem_p                                     lib.o
+syscall_sem_v                                     lib.o
 syscall_write                                     lib.o
                                                   exec.o
 write_char                                        exec.o

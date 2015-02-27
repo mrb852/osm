@@ -42,7 +42,7 @@ usr_sem_t* syscall_sem_open(char const* name, int value) {
 
 int syscall_sem_p(usr_sem_t* handle) {
   semaphore_P(((user_semaphore_t *)handle)->sem);
-  return 0; 
+  return 0;
 }
 
 int syscall_sem_v(usr_sem_t* handle) {
