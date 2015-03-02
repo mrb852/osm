@@ -1,0 +1,62 @@
+queue
+
+til at starte med vill queue ikke compile med #include <error.h>, så den har vi fjernet. I stedet har vi inkluderet pthread biblioteket, da vi skal bruge det til at lave låse og tråde
+
+Vi har defineret en global lås i queue.c:
+static pthread_mutex_t mtx;
+
+Den bliver initializet i queue_init(queue_t*) ved hjælp af phtread_mutex_init()
+
+I queue_put(queue_t *q, void* item) er alt sårbart blevet låst af vores mutex. På første linje låser vi så andre tråde ikke kan indsætte elementer sammentidig med en anden er igang: pthread_mutex_lock(&mtx);
+På sidste linje låser vi så op igen for at give andre adgang: pthread_mutex_unlock(&mtx);
+
+Det samme sker i queue_get(queue_t *q);
+
+For at teste med tråede at det virker har vi lavet to funktioner der henholdsvis indsætter og fjerner elementer fra køen:
+
+static void* put(void* args)
+og
+static void* get(void* args)
+
+void* args her indeholder en pointer til køen og en værdi vi kan indsætte
+
+Den har vi valgt at kalde 'put_args'
+
+typedef struct put_args {
+  queue_t* queue;
+  int val;
+} put_args;
+
+I main(int argc, char **argv) har vi oprettet 3 arrays til indsættelsestråde, argument structs og fjernelsestråde
+
+Først køres en forløkke som initializer argumenterne med index som indsættelsesværdi og queue til den lokale kø
+
+put_args arg = {.queue = &q, .val = i};
+args[i] = arg;
+
+Derefter laver vi en tråd og giver den 'arg' som argument til funktionen 'put'
+
+pthread_create(&put_threads[i], NULL, put, &args[i]);
+
+Derefter joines der
+
+for (int i = 0; i < MAX; i++) {
+  pthread_join(put_threads[i], NULL);
+}
+
+Efter indsættelsen fjerner vi alle elementer igen. Det sker også via tråede
+
+Argumentet i 'get' kunne egentlig bare være en pointer til køen, men vi har bare givet den put_arg structen
+
+for (int i = 0; i < MAX; i++) {
+  pthread_create(&get_threads[i], NULL, get, &args[i]);
+}
+
+for (int i = 0; i < MAX; i++) {
+  pthread_join(get_threads[i], NULL);
+}
+
+Til sidst checker vi om alt er som det skal være. Altså om køen er tom.
+
+assert(NULL == queue_get(&q));
+
