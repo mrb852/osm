@@ -5,5 +5,54 @@ TASK 2 - Semaphores
 ===================
 
 Vi har implementeret userland semaphore ved at anvende den allerede
-implementeret kernel semaphore.
+implementeret kernel semaphore. Userland-semaphorene havde dog nogle flere krav
+end kernel semaphorene. Vi måtte derfor tilføje en ny "struct", som kunne
+inkludere kernel-semaphore, navn og "userland-state". Opgaven kræver, at
+semaphoren har et navn og får at være sikker på, at en userland-semaphore har
+lukket korrekt, har vi inkluderet et state her også. Man kunne også forstille
+sig, at hvis vi ikke havde state, så kunne en userland semaphore lukke i kernel
+space og inden userland processen fandt ud af det, havde en kernel process
+overtaget semaphoren, og user-land process ville derfor tro, at den stadig var
+i gang.
+
+For at implementere denne feature har vi følgende structs:
+
+    typedef enum {
+      USER_SEM_STATE_FREE,
+      USER_SEM_STATE_RUNNING
+    } USER_SEM_STATE;
+
+    typedef struct {
+      semaphore_t* sem;
+      char name[32];
+      USER_SEM_STATE state;
+    } user_semaphore_t;
+
+For at tillade, at vi kunne bruge kernel-funktioner i userland, har vi tilføjet
+disse funktioner til test/lib.c:
+
+    void* syscall_sem_open(char const* name, int value){
+        return (usr_sem_t *)_syscall(SYSCALL_SEM_OPEN, (uint32_t)name,
+                                     (uint32_t)value, 0);
+    }
+
+    int syscall_sem_p(void * handle){
+        return (int)_syscall(SYSCALL_SEM_PROCURE, (uint32_t) handle, 0, 0);
+    }
+
+    int syscall_sem_v(void * handle){
+        return (int)_syscall(SYSCALL_SEM_VACATE, (uint32_t) handle, 0, 0);
+    }
+
+    int syscall_sem_destroy(void * handle){
+        return (int)_syscall(SYSCALL_SEM_DESTROY, (uint32_t) handle, 0, 0);
+    }
+
+De sørger for, at koble syscall sammen med kernel funktionerne.
+
+
+For at afprøve vores implementering af semaphorer, har vi lavet ter nye filer i
+test/. Vi har lavet "spawner", som opretter to nye processer, som kan anvende
+vores semaphorer. Den åbner to programmer, nemlig "kat" og "mus". "kat" og "mus"
+prøver samtidig at skrive til printf, men semaphoren forhindre, at de kollidere.
 

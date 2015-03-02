@@ -63,25 +63,6 @@ int syscall_sem_destroy(void * handle)
 }
 
 
-/*
-case SYSCALL_SEM_OPEN:
-        V0 = (int)syscall_sem_open((char *)A1, (int)A2);
-        break;
-    case SYSCALL_SEM_PROCURE:
-        V0 = syscall_sem_p((void *)A1);
-        break;
-    case SYSCALL_SEM_VACATE:
-        V0 = syscall_sem_v((void *)A1);
-        break;
-    case SYSCALL_SEM_DESTROY:
-        V0 = syscall_sem_destroy((void *)A1);
-        break;
-
-*/
-
-
-
-
 /* Halt the system (sync disks and power off). This function will
  * never return. 
  */
