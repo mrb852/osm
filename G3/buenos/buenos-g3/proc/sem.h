@@ -11,9 +11,12 @@ typedef enum {
 
 typedef void usr_sem_t;
 
+// Bruger kernels semaphore implementering. Der laves en array med samme længe 
+// som kernens semaphore implementering. Userland og kernen deler det totale 
+// antal semaphore.
 typedef struct {
   semaphore_t* sem;
-  char* name;
+  char name[32];
   USER_SEM_STATE state;
 } user_semaphore_t;
 

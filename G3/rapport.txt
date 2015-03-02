@@ -1,0 +1,9 @@
+TASK 1
+======
+
+TASK 2 - Semaphores
+===================
+
+Vi har implementeret userland semaphore ved at anvende den allerede
+implementeret kernel semaphore.
+
