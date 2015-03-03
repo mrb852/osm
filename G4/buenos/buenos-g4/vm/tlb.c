@@ -41,6 +41,9 @@
 
 void tlb_modified_exception(void)
 {
+    tlb_exception_state_t state;
+    _tlb_get_exception_state(&state);
+
     KERNEL_PANIC("Unhandled TLB modified exception");
 }
 
