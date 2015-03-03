@@ -9,7 +9,7 @@ Discarded input sections
 
  .reginfo       0x0000000000000000       0x18 _syscall.o
  .reginfo       0x0000000000000000       0x18 lib.o
- .reginfo       0x0000000000000000       0x18 spawner.o
+ .reginfo       0x0000000000000000       0x18 kat.o
 
 Memory Configuration
 
@@ -20,7 +20,7 @@ Linker script and memory map
 
                 0x0000000000001000                . = 0x1000
 
-ro_segment      0x0000000000001000     0x2758
+ro_segment      0x0000000000001000     0x2798
  *(.text .rodata .rodata.*)
  .text          0x0000000000001000       0x24 crt.o
                 0x0000000000001000                _start
@@ -72,9 +72,9 @@ ro_segment      0x0000000000001000     0x2758
                 0x00000000000033b0                realloc
                 0x00000000000034cc                atoi
  .rodata        0x00000000000035c4      0x110 lib.o
- .text          0x00000000000036d4       0x6c spawner.o
+ .text          0x00000000000036d4       0xb8 kat.o
                 0x00000000000036d4                main
- .rodata        0x0000000000003740       0x18 spawner.o
+ .rodata        0x000000000000378c        0xc kat.o
 
 rw_segment      0x0000000000004000      0x104
  *(.data .bss COMMON)
@@ -87,14 +87,14 @@ rw_segment      0x0000000000004000      0x104
  COMMON         0x0000000000004000      0x104 lib.o
                 0x0000000000004000                heap
                 0x0000000000004100                free_list
- .data          0x0000000000004104        0x0 spawner.o
- .bss           0x0000000000004104        0x0 spawner.o
+ .data          0x0000000000004104        0x0 kat.o
+ .bss           0x0000000000004104        0x0 kat.o
                 0x0000000000004104                BINARY_ENDS_HERE = .
 LOAD crt.o
 LOAD _syscall.o
 LOAD lib.o
-LOAD spawner.o
-OUTPUT(spawner elf32-bigmips)
+LOAD kat.o
+OUTPUT(kat elf32-bigmips)
 
 .reginfo        0x0000000000000000       0x18
  .reginfo       0x0000000000000000       0x18 crt.o
@@ -103,23 +103,23 @@ OUTPUT(spawner elf32-bigmips)
  .pdr           0x0000000000000000       0x40 crt.o
  .pdr           0x0000000000000040       0x20 _syscall.o
  .pdr           0x0000000000000060      0x5e0 lib.o
- .pdr           0x0000000000000640       0x20 spawner.o
+ .pdr           0x0000000000000640       0x20 kat.o
 
 .mdebug.abi32   0x0000000000000000        0x0
  .mdebug.abi32  0x0000000000000000        0x0 lib.o
- .mdebug.abi32  0x0000000000000000        0x0 spawner.o
+ .mdebug.abi32  0x0000000000000000        0x0 kat.o
 
 .comment        0x0000000000000000       0x11
  .comment       0x0000000000000000       0x11 lib.o
                                          0x12 (size before relaxing)
- .comment       0x0000000000000000       0x12 spawner.o
+ .comment       0x0000000000000000       0x12 kat.o
 
 .gnu.attributes
                 0x0000000000000000       0x10
  .gnu.attributes
                 0x0000000000000000       0x10 lib.o
  .gnu.attributes
-                0x0000000000000010       0x10 spawner.o
+                0x0000000000000010       0x10 kat.o
 
 Cross Reference Table
 
@@ -137,7 +137,7 @@ getc_raw                                          lib.o
 gets                                              lib.o
 heap                                              lib.o
 heap_init                                         lib.o
-main                                              spawner.o
+main                                              kat.o
                                                   crt.o
 malloc                                            lib.o
 memcmp                                            lib.o
@@ -146,6 +146,7 @@ memset                                            lib.o
 myPutc                                            lib.o
 printf                                            lib.o
 puts                                              lib.o
+                                                  kat.o
 readline                                          lib.o
 realloc                                           lib.o
 snprintf                                          lib.o
@@ -161,19 +162,21 @@ syscall_close                                     lib.o
 syscall_create                                    lib.o
 syscall_delete                                    lib.o
 syscall_exec                                      lib.o
-                                                  spawner.o
 syscall_execp                                     lib.o
 syscall_exit                                      lib.o
+                                                  kat.o
 syscall_fork                                      lib.o
 syscall_halt                                      lib.o
 syscall_join                                      lib.o
-                                                  spawner.o
 syscall_memlimit                                  lib.o
 syscall_open                                      lib.o
 syscall_read                                      lib.o
 syscall_seek                                      lib.o
 syscall_sem_destroy                               lib.o
 syscall_sem_open                                  lib.o
+                                                  kat.o
 syscall_sem_p                                     lib.o
+                                                  kat.o
 syscall_sem_v                                     lib.o
+                                                  kat.o
 syscall_write                                     lib.o
