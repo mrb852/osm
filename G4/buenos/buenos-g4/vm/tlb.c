@@ -39,6 +39,7 @@
 #include "vm/tlb.h"
 #include "vm/pagetable.h"
 
+<<<<<<< HEAD
 
 
 
@@ -64,6 +65,26 @@ void tlb_modified_exception(void)
 
 
 
+=======
+void tlb_modified_exception(void)
+{
+    tlb_exception_state_t state;
+    _tlb_get_exception_state(&state);
+
+    KERNEL_PANIC("Unhandled TLB modified exception");
+}
+
+void tlb_load_exception(void)
+{
+    KERNEL_PANIC("Unhandled TLB load exception");
+}
+
+void tlb_store_exception(void)
+{
+    KERNEL_PANIC("Unhandled TLB store exception");
+}
+
+>>>>>>> d11bf8fc946296d1d246c173aa516ea61737f06b
 /**
  * Fill TLB with given pagetable. This function is used to set memory
  * mappings in CP0's TLB before we have a proper TLB handling system.

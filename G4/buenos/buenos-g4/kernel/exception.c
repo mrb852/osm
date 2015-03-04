@@ -81,6 +81,7 @@ void kernel_exception_handle(int exception)
 
     switch(exception) {
     case EXCEPTION_TLBM:
+<<<<<<< HEAD
         print_tlb_debug();
 	KERNEL_PANIC("TLB Modification: not handled yet");
 	break;
@@ -91,6 +92,21 @@ void kernel_exception_handle(int exception)
     case EXCEPTION_TLBS:
         print_tlb_debug();
 	KERNEL_PANIC("TLB Store: not handled yet");
+=======
+      tlb_modified_exception();
+        // print_tlb_debug();
+	// KERNEL_PANIC("TLB Modification: not handled yet");
+	break;
+    case EXCEPTION_TLBL:
+      tlb_load_exception();
+ //        print_tlb_debug();
+	// KERNEL_PANIC("TLB Load: not handled yet");
+	break;
+    case EXCEPTION_TLBS:
+      tlb_store_exception();
+        // print_tlb_debug();
+	// KERNEL_PANIC("TLB Store: not handled yet");
+>>>>>>> d11bf8fc946296d1d246c173aa516ea61737f06b
 	break;
     case EXCEPTION_ADDRL:
 	print_tlb_debug();

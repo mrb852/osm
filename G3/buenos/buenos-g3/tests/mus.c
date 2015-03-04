@@ -9,6 +9,7 @@ int main() {
         printf("Mus\n\n");
         syscall_sem_v((usr_sem_t*) mushandle);
     }
+
     syscall_exit(0);
     return 0;
 }

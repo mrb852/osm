@@ -25,9 +25,8 @@ usr_sem_t* syscall_sem_open(char const* name, int value) {
   for (i = 0; i < CONFIG_MAX_SEMAPHORES; ++i) {
     if (semaphore_table[i].state == USER_SEM_STATE_FREE) {
       semaphore_table[i].sem = sem;
-      user_semaphore_t *sem_pointer = &semaphore_table[i]; 
+      user_semaphore_t *sem_pointer = &semaphore_table[i];
       stringcopy(sem_pointer->name, name, SEM_MAX_NAME_LEN);
-      
       semaphore_table[i].state = USER_SEM_STATE_RUNNING;
       break;
     }
