@@ -1,0 +1,28 @@
+Opgave 1
+
+I opgave et har vi implementeret wrapper kald til fs/vfs.h og sammentidig returneret errors.
+Vi har også valgt at printe erros ud i konsolen med kprintf for at lade brugeren se der er fejl
+Det kunne godt undlades, men det gjorde debugging lidt nemmere.
+
+Ved oprettelse af filer har vi givet et offset på +2 med når man får en fil returneret og trækker
+2 fra når der modtages en fil. Dette skyldes at 0, 1 og 2 er reserveret til standard io.
+
+I process_control_block_t har vi tilføjet en liste der holder styr på de filer en process har åbnet.
+De bliver lukket automatisk af systemet når en process sluttes. Kode ses i process_finish().
+
+Opgave 2
+
+GrowFS (vi har bare kaldt det gfs).
+Stort set en kopi af TFS pånær at vi har lavet nogle småændringer i gfs_write.
+
+Først checkes der om datasize er større en filen, hvor vi opdaterer buffer_inode med størrelsen og skriver den til disk.
+
+Dernæst læses der fra disk igen så vi er sikre på at alt er opdateret.
+
+Nu udregnes der hvor mange blocks der skal bruges til at skrive dataen, og vi mapper der hvor der er ledigt i buffer_inode. Hvis findnset sætter -1 er disken fuld og vi returner med fejl.
+
+Ellers opdateres filen på disken og der læses igen for at få opdateringerne med.
+
+Vores test hedder filetest.c og skriver lidt tekst til "hello.txt"
+
+

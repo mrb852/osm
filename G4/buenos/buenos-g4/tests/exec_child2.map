@@ -20,14 +20,14 @@ Linker script and memory map
 
                 0x0000000000001000                . = 0x1000
 
-ro_segment      0x0000000000001000     0x262c
+ro_segment      0x0000000000001000     0x26b4
  *(.text .rodata .rodata.*)
  .text          0x0000000000001000       0x24 crt.o
                 0x0000000000001000                _start
                 0x0000000000001018                __main
  .text          0x0000000000001024        0xc _syscall.o
                 0x0000000000001024                _syscall
- .text          0x0000000000001030     0x246c lib.o
+ .text          0x0000000000001030     0x24f4 lib.o
                 0x0000000000001030                syscall_halt
                 0x0000000000001070                syscall_exec
                 0x00000000000010b8                syscall_execp
@@ -63,14 +63,14 @@ ro_segment      0x0000000000001000     0x262c
                 0x0000000000002d28                snprintf
                 0x0000000000002d90                heap_init
                 0x0000000000002de0                malloc
-                0x0000000000002fc4                free
-                0x00000000000031c8                calloc
-                0x0000000000003288                realloc
-                0x00000000000033a4                atoi
- .rodata        0x000000000000349c      0x110 lib.o
- .text          0x00000000000035ac       0x50 exec_child2.o
-                0x00000000000035ac                main
- .rodata        0x00000000000035fc       0x30 exec_child2.o
+                0x000000000000304c                free
+                0x0000000000003250                calloc
+                0x0000000000003310                realloc
+                0x000000000000342c                atoi
+ .rodata        0x0000000000003524      0x110 lib.o
+ .text          0x0000000000003634       0x50 exec_child2.o
+                0x0000000000003634                main
+ .rodata        0x0000000000003684       0x30 exec_child2.o
 
 rw_segment      0x0000000000004000      0x104
  *(.data .bss COMMON)

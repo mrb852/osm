@@ -44,7 +44,7 @@
 
 
 /* Halt the system (sync disks and power off). This function will
- * never return. 
+ * never return.
  */
 void syscall_halt(void)
 {
@@ -67,8 +67,8 @@ int syscall_exec(const char *filename)
  */
 int syscall_execp(const char *filename, int argc, const char **argv)
 {
-    return (int)_syscall(SYSCALL_EXEC, (uint32_t)filename, 
-                         (uint32_t) argc, 
+    return (int)_syscall(SYSCALL_EXEC, (uint32_t)filename,
+                         (uint32_t) argc,
                          (uint32_t) argv);
 }
 
@@ -126,7 +126,7 @@ int syscall_open(const char *filename)
 
 
 /* Close the open file identified by 'filehandle'. Zero will be returned
- * success, other values indicate errors. 
+ * success, other values indicate errors.
  */
 int syscall_close(int filehandle)
 {
@@ -147,7 +147,7 @@ int syscall_read(int filehandle, void *buffer, int length)
 
 
 /* Set the file position of the open file identified by 'filehandle'
- * to 'offset'. Returns 0 on success or a negative value on error. 
+ * to 'offset'. Returns 0 on success or a negative value on error.
  */
 int syscall_seek(int filehandle, int offset)
 {
@@ -168,7 +168,7 @@ int syscall_write(int filehandle, const void *buffer, int length)
 
 
 /* Create a file with the name 'filename' and initial size of
- * 'size'. Returns 0 on success and a negative value on error. 
+ * 'size'. Returns 0 on success and a negative value on error.
  */
 int syscall_create(const char *filename, int size)
 {
@@ -177,7 +177,7 @@ int syscall_create(const char *filename, int size)
 
 
 /* Remove the file identified by 'filename' from the file system it
- * resides on. Returns 0 on success or a negative value on error. 
+ * resides on. Returns 0 on success or a negative value on error.
  */
 int syscall_delete(const char *filename)
 {
@@ -438,7 +438,7 @@ static int print_uint(char *buf,
   int i = 0, written = 0;
 
   if (size <= 0) return 0;
-  
+
   /* produce the number string in reverse order to the temp buffer 'rev' */
   do {
     if (flags & FLAG_SMALLS)
@@ -585,7 +585,7 @@ static int vxnprintf(char *buf,
         printc(buf++, ' ', flags);
         written++;
       }
-      
+
       w = print_uint(buf, size-written, arg, 10, flags, 0, 0);
       buf += w;
       written += w;
@@ -652,7 +652,7 @@ static int vxnprintf(char *buf,
     }
   }
   /* the string was truncated */
-  if (written == size) { 
+  if (written == size) {
     buf--;
     written = -1;
   }
@@ -703,14 +703,18 @@ byte heap[HEAP_SIZE];
 void heap_init()
 {
   free_list = (free_block_t*) heap;
-  free_list->size = HEAP_SIZE;
+  free_list->size = 0; // reset to zero because we are using syscalls now.
   free_list->next = NULL;
 }
 
 
-/* Return a block of at least size bytes, or NULL if no such block 
+/* Return a block of at least size bytes, or NULL if no such block
    can be found.  */
 void *malloc(size_t size) {
+
+  // initialize the heap only once
+  if (free_list == NULL) heap_init();
+
   free_block_t *block;
   free_block_t **prev_p; /* Previous link so we can remove an element */
   if (size == 0) {
@@ -718,7 +722,7 @@ void *malloc(size_t size) {
   }
 
   /* Ensure block is big enough for bookkeeping. */
-  size=MAX(MIN_ALLOC_SIZE,size);
+  size = MAX(MIN_ALLOC_SIZE,size);
   /* Word-align */
   if (size % 4 != 0) {
     size &= ~3;
@@ -730,15 +734,14 @@ void *malloc(size_t size) {
   for (block = free_list, prev_p = &free_list;
        block;
        prev_p = &(block->next), block = block->next) {
-    if ( (int)( block->size - size - sizeof(size_t) ) >= 
-         (int)( MIN_ALLOC_SIZE+sizeof(size_t) ) ) {
+    if ( (int)( block->size - size - sizeof(size_t) ) >= (int)( MIN_ALLOC_SIZE+sizeof(size_t) ) ) {
       /* Block is too big, but can be split. */
       block->size -= size+sizeof(size_t);
-      free_block_t *new_block =
-        (free_block_t*)(((byte*)block)+block->size);
+      free_block_t *new_block = (free_block_t*)(((byte*)block)+block->size);
       new_block->size = size+sizeof(size_t);
       return ((byte*)new_block)+sizeof(size_t);
-    } else if (block->size >= size + sizeof(size_t)) {
+    }
+    else if (block->size >= size + sizeof(size_t)) {
       /* Block is big enough, but not so big that we can split
          it, so just return it */
       *prev_p = block->next;
@@ -747,8 +750,18 @@ void *malloc(size_t size) {
     /* Else, check the next block. */
   }
 
-  /* No heap space left. */
-  return NULL;
+  // No more space. We need to ask the system for more
+  // First get the current heap end by calling syscall_memlimit with NULL
+  int heap_end = (int)syscall_memlimit(NULL) + 1;
+
+  // Ask the system for increasing the heap
+  syscall_memlimit((void*)heap_end + size);
+
+  // update the free list size
+  free_list->size += heap_end * 4096;
+
+  // try to malloc the bytes again
+  return malloc(size);
 }
 
 /* Return the block pointed to by ptr to the free pool. */
@@ -762,7 +775,7 @@ void free(void *ptr)
     /* Iterate through the free list, which is sorted by
        increasing address, and insert the newly freed block at the
        proper position. */
-    for (cur_block = free_list, prev_block = NULL; 
+    for (cur_block = free_list, prev_block = NULL;
          ;
          prev_block = cur_block, cur_block = cur_block->next) {
       if (cur_block > block || cur_block == NULL) {

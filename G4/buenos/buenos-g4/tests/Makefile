@@ -36,7 +36,8 @@
 # $Id: Makefile,v 1.6 2005/05/09 00:05:44 jaatroko Exp $
 
 # Add your _userland_ program sources to this variable:
-SOURCES  := halt.c readwrite.c exec.c exec_child1.c exec_child2.c hw.c
+# SOURCES  := halt.c readwrite.c exec.c exec_child1.c exec_child2.c hw.c tlb.c
+SOURCES  := $(filter-out lib.c, $(wildcard *.c))
 
 OBJECTS  := $(patsubst %.c, %.o, $(SOURCES))
 TARGETS  := $(patsubst %.o, %, $(OBJECTS))

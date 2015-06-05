@@ -79,34 +79,15 @@ void kernel_exception_handle(int exception)
     /* Clear EXL to make normal interrupt disable/enable work. */
     _interrupt_clear_EXL();
 
-    switch(exception) {
+  switch(exception) {
     case EXCEPTION_TLBM:
-<<<<<<< HEAD
-        print_tlb_debug();
-	KERNEL_PANIC("TLB Modification: not handled yet");
+    tlb_modified_exception();
 	break;
     case EXCEPTION_TLBL:
-        print_tlb_debug();
-	KERNEL_PANIC("TLB Load: not handled yet");
+    tlb_load_exception();
 	break;
     case EXCEPTION_TLBS:
-        print_tlb_debug();
-	KERNEL_PANIC("TLB Store: not handled yet");
-=======
-      tlb_modified_exception();
-        // print_tlb_debug();
-	// KERNEL_PANIC("TLB Modification: not handled yet");
-	break;
-    case EXCEPTION_TLBL:
-      tlb_load_exception();
- //        print_tlb_debug();
-	// KERNEL_PANIC("TLB Load: not handled yet");
-	break;
-    case EXCEPTION_TLBS:
-      tlb_store_exception();
-        // print_tlb_debug();
-	// KERNEL_PANIC("TLB Store: not handled yet");
->>>>>>> d11bf8fc946296d1d246c173aa516ea61737f06b
+    tlb_store_exception();
 	break;
     case EXCEPTION_ADDRL:
 	print_tlb_debug();

@@ -61,18 +61,22 @@ typedef struct {
    longer than the process (so the original string memory might end up pointing
    to something else), and later on processes will get proper virtual memory, so
    we have to copy the name to kernel memory. */
-    char executable[PROCESS_MAX_FILELENGTH];
+  char executable[PROCESS_MAX_FILELENGTH];
 
-/* We need to keep track of a process' state to make sure calls to eg. `join` do
-   the right thing. */
-    process_state_t state;
+  /* We need to keep track of a process' state to make sure calls to eg. `join` do
+  the right thing. */
+  process_state_t state;
 
-/* A parent should be able to get a child's return value after it exits, so we
-   store it here. */
-    int retval;
+  /* A parent should be able to get a child's return value after it exits, so we
+  store it here. */
+  int retval;
 
-/* Only a process' parent should be able to interface with it. */
-    process_id_t parent;
+  /* Only a process' parent should be able to interface with it. */
+  process_id_t parent;
+
+  /* holds the address of free memory mapped to a physical page */
+  void* heap_end;
+
 } process_control_block_t;
 
 void process_start(process_id_t pid);
@@ -86,5 +90,7 @@ process_id_t process_get_current_process(void);
 
 /* Return PCB of current process. */
 process_control_block_t *process_get_current_process_entry(void);
+
+void* process_memlimit(void* new_end);
 
 #endif

@@ -1,0 +1,87 @@
+Opgave 1
+
+Til start har vi fået proc/exception.c og kernel/exception.c til at kalde vores
+implementation af tlb_store_exception, tlb_load_exception og
+tlb_modified_exception, samt fjernet kald til tlb_fill
+
+Vi har bygget vores exception handling op således at load og store
+kalder tlb_handle_exception siden de gør det samme arbejde.
+
+void tlb_load_exception() OG void tlb_store_exception()
+{
+  if (tlb_handle_exception() == 0) {
+    tlb_close_process("...");
+  }
+}
+
+int tlb_handle_exception()
+
+Returnerer 1 hvis den kan skrive til en pagetable og 0 hvis den fejler.
+
+Ved fejl kaldes tlb_close_process("besked") som checker om det er
+en userland process eller kernel process der er opstået fejl i.
+Hvis det er en userland process lukkes den process og ellers kaldes
+der KERNEL_PANIC.
+
+  void tlb_close_process(char* error_message) {
+    thread_table_t* thread = thread_get_current_thread_entry();
+
+    if (thread->user_context->status & USERLAND_ENABLE_BIT) {
+      kwrite(error_message);
+      thread_finish();
+    }
+    else {
+      KERNEL_PANIC("unhandled tlb exception");
+    }
+  }
+
+Opgave 2
+
+void* process_memlimit(void* new_end)
+
+Først og fremmest har vi kaldt vores funktion process_memlimit da det giver mere mening at en userland process befinder sig i proc/process.c i stedet for proc/syscall.c.
+
+Vi starter med at få fat i processens heap_end.
+Der tjekkes om argumentet new_end er NULL. Hvis den er så returneres processens nuværende heap_end.
+Dernæst testes der om processen prøver at formindske heapen. Hvis den gør det returneres NULL, som indikerer at der er fejl.
+
+Nu opdateres processens heap end til den nye og vi mapper vores pagetable igen.
+
+Til sidst returneres den nye heap_end.
+
+Vi har også i process_start initialiseret heap_end på processen vha. af elf.
+
+  process_table[pid].heap_end = (void*)(elf.rw_vaddr + elf.rw_size);
+
+I malloc har vi testet om free_list == NULL. Hvis den er det kaldes heap_init() da der står i kommentarene at malloc ikke virker uden den er kaldt.
+
+Hvis der ikke er mere plads i heapen kaldes syscall_memlimit med NULL som argument for at få processens nuværende heap_end. Derefter ligger vi én til. Vi kalder syscall_memlimit med den nye heap_end + size, opdaterer free_list->size og returnerer rekursivt malloc(size).
+
+  void *malloc() {
+    if (free_list == NULL)
+      heap_init();
+    ...
+    int heap_end = (int)syscall_memlimit(NULL) + 1;
+    syscall_memlimit((void*)heap_end + size);
+    free_list->size += heap_end * 4096;
+    return malloc(size);
+  }
+
+Tests.
+
+Vores test program hedder tlb.c og kalder malloc 100 gange med 200 bytes hvor alt fungerer fint. Til sidst kaldes der en til gang for at få den til at fejle og kalde vores tlb_store_exception().
+
+  // A small program that triggers the TLB Store exception
+  int main() {
+    int MAX = 100; void* arr[MAX]; int i = 0;
+
+    for (; i < MAX; ++i) {
+      arr[i] = malloc(200);
+      printf("index: %d, %p\n", i, &(arr[i]));
+    }
+
+    printf("\nWILL FAIL NOW\n\n\n");
+    arr[MAX] = malloc(200);
+
+    return 0;
+  }

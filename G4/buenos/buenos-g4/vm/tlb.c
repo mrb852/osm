@@ -38,76 +38,71 @@
 #include "kernel/assert.h"
 #include "vm/tlb.h"
 #include "vm/pagetable.h"
+#include "kernel/thread.h"
 
-<<<<<<< HEAD
+void tlb_close_process(char* error_message) {
+  // Get the current thread entry
+  thread_table_t* thread = thread_get_current_thread_entry();
 
+  if (thread->user_context->status & USERLAND_ENABLE_BIT) {
+    kwrite(error_message);
+    thread_finish();
+  }
+  else {
+    KERNEL_PANIC("unhandled tlb exception");
+  }
+}
 
+int tlb_handle_exception()
+{
+  // Get the exception state
+  tlb_exception_state_t state;
+  _tlb_get_exception_state(&state);
+
+  // Get the current thread
+  thread_table_t* thread = thread_get_current_thread_entry();
+
+  // Check if the states bad virtual address is odd
+  uint32_t is_odd = state.badvaddr & 4096;
+  kprintf("\n\ncount: %d\n\n", thread->pagetable->valid_count);
+  // Try to find a valid mapping for the process
+  int i = 0;
+  for (; i < PAGETABLE_ENTRIES; ++i) {
+    // get the i'th entry and check if it's valid to store / load
+    tlb_entry_t* entry = &thread->pagetable->entries[i];
+
+    uint32_t is_valid = is_odd ? entry->V1 : entry->V0;
+
+    // write the entry if the states bad virtual page number is the same as the entries
+    if ( is_valid && state.badvpn2 == entry->VPN2 ) {
+      // update the entries ASID (thread id) to the exception states
+      entry->ASID = state.asid;
+      _tlb_write_random(entry);
+      return 1;
+    }
+  }
+
+  return 0;
+}
 
 void tlb_load_exception(void)
 {
-    tlb_exception_state_t state;
-
-    _tlb_get_exception_state(&state);
-
-    _tlb_write(state);
-    KERNEL_PANIC("Unhandled TLB load exception");
+  if (tlb_handle_exception() == 0) {
+    // Could not load entry so close
+    tlb_close_process("TLB access violation: could not load entry\n");
+  }
 }
 
 void tlb_store_exception(void)
 {
-    KERNEL_PANIC("Unhandled TLB store exception");
+  if (tlb_handle_exception() == 0) {
+    // Could not store entry so close
+    tlb_close_process("TLB access violation: could not store entry\n");
+  }
 }
 
 void tlb_modified_exception(void)
 {
-    KERNEL_PANIC("Unhandled TLB modified exception");
-}
-
-
-
-=======
-void tlb_modified_exception(void)
-{
-    tlb_exception_state_t state;
-    _tlb_get_exception_state(&state);
-
-    KERNEL_PANIC("Unhandled TLB modified exception");
-}
-
-void tlb_load_exception(void)
-{
-    KERNEL_PANIC("Unhandled TLB load exception");
-}
-
-void tlb_store_exception(void)
-{
-    KERNEL_PANIC("Unhandled TLB store exception");
-}
-
->>>>>>> d11bf8fc946296d1d246c173aa516ea61737f06b
-/**
- * Fill TLB with given pagetable. This function is used to set memory
- * mappings in CP0's TLB before we have a proper TLB handling system.
- * This approach limits the maximum mapping size to 128kB.
- *
- * @param pagetable Mappings to write to TLB.
- *
- */
-
-void tlb_fill(pagetable_t *pagetable)
-{
-    if(pagetable == NULL)
-	return;
-
-    /* Check that the pagetable can fit into TLB. This is needed until
-     we have proper VM system, because the whole pagetable must fit
-     into TLB. */
-    KERNEL_ASSERT(pagetable->valid_count <= (_tlb_get_maxindex()+1));
-
-    _tlb_write(pagetable->entries, 0, pagetable->valid_count);
-
-    /* Set ASID field in Co-Processor 0 to match thread ID so that
-       only entries with the ASID of the current thread will match in
-       the TLB hardware. */
-    _tlb_set_asid(pagetable->ASID);
+  // Could not modify entry so close
+  tlb_close_process("TLB access violation: could not modify entry\n");
 }

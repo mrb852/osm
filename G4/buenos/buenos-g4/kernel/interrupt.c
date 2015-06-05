@@ -149,7 +149,7 @@ void interrupt_register(uint32_t irq,
  */
 void interrupt_handle(uint32_t cause) {
     int this_cpu, i;
-    
+
     if(cause & INTERRUPT_CAUSE_SOFTWARE_0) {
         _interrupt_clear_sw0();
     }
@@ -170,7 +170,7 @@ void interrupt_handle(uint32_t cause) {
     for (i=0; i<CONFIG_MAX_DEVICES; i++) {
 	if (interrupt_handlers[i].device == NULL)
 	    break;
-	
+
 	/* If this handler is registered for any of the interrupts
 	 * that occured, call it.
 	 */
@@ -186,17 +186,5 @@ void interrupt_handle(uint32_t cause) {
 		 INTERRUPT_CAUSE_HARDWARE_5)) ||
        scheduler_current_thread[this_cpu] == IDLE_THREAD_TID) {
 	scheduler_schedule();
-	
-	/* Until we have proper VM we must manually fill
-	   the TLB with pagetable entries before running code using
-	   given pagetable. Note that this method limits pagetable
-	   rows (possible mapping pairs) to 16 and can't be used
-	   with proper pagetables and VM.
-
-           Note that if you remove this call (which you probably do when
-           you implement proper VM), you must manually call _tlb_set_asid
-           here. See the implementation of tlb_fill on details how to do that.
-        */
-	tlb_fill(thread_get_current_thread_entry()->pagetable);
     }
 }

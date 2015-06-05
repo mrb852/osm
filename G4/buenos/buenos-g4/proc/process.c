@@ -139,11 +139,12 @@ void process_start(process_id_t pid) {
                elf.rw_vaddr + i*PAGE_SIZE, 1);
     }
 
+    process_table[pid].heap_end = (void*)(elf.rw_vaddr + elf.rw_size);
+
     /* Put the mapped pages into TLB. Here we again assume that the
        pages fit into the TLB. After writing proper TLB exception
        handling this call should be skipped. */
     intr_status = _interrupt_disable();
-    tlb_fill(my_entry->pagetable);
     _interrupt_set_state(intr_status);
 
     /* Now we may use the virtual addresses of the segments. */
@@ -182,7 +183,6 @@ void process_start(process_id_t pid) {
 
     /* Insert page mappings again to TLB to take read-only bits into use */
     intr_status = _interrupt_disable();
-    tlb_fill(my_entry->pagetable);
     _interrupt_set_state(intr_status);
 
     /* Initialize the user context. (Status register is handled by
@@ -352,4 +352,42 @@ process_control_block_t *process_get_current_process_entry(void) {
     return &process_table[process_get_current_process()];
 }
 
+void* process_memlimit(void* new_end) {
+  // get the current process
+  process_control_block_t* current_process = process_get_current_process_entry();
+
+  // get the current heap end
+  uint32_t current_heap_end = (uint32_t)current_process->heap_end;
+
+  // Return the current heap end if the new_end is null
+  if (new_end == NULL) {
+    return (void *)current_heap_end;
+  }
+
+  // Return null when trying to shrink the heap
+  if ((uint32_t)new_end < current_heap_end){
+    kwrite("Decreasing / unmapping currently not supported\n");
+    return NULL;
+  }
+
+  // Get the current process' pagetable and make sure it exists
+  pagetable_t* pagetable = thread_get_current_thread_entry()->pagetable;
+  KERNEL_ASSERT(pagetable != NULL);
+
+  // update the the heap_end
+  current_process->heap_end = new_end;
+
+  // remap the pages in the page table
+  uint32_t i = current_heap_end;
+  for (; i <= (uint32_t)new_end; ++i) {
+    uint32_t page = pagepool_get_phys_page();
+    KERNEL_ASSERT(page != 0);
+    vm_map(pagetable, page, i * PAGE_SIZE, 1);
+  }
+
+  // return the new heap end
+  return current_process->heap_end;
+}
+
 /** @} */
+
